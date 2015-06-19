@@ -1,0 +1,117 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.5.0/ol.css" type="text/css">
+		<script src="json2.js" type="text/javascript"></script>
+		<style>
+		.map {
+		height: 400px;
+		width: 100%;
+		}
+		</style>
+		<script src="builder.js" type="text/javascript"></script>
+		<title>OpenLayers 3 example</title>
+	</head>
+	<body>
+		<h2>My Map</h2>
+		<h2> <input type="button" value="Read!" onclick="document.getElementById('show').value=readFile('D:/1.txt');"/></h2>
+		<!-- <h2> <input type="button" value="Read!" onclick="document.getElementById('show').value=getatt(geoLayer);"/></h2> -->
+		<textarea id="show" name="show" cols="50" rows="8" ></textarea>   
+		<div id="map" class="map"></div>
+		<script type="text/javascript">
+			var centerPoint = [139.6917064, 35.6894875];
+			
+			function readFile(filename){ 
+				var fso = new ActiveXObject("Scripting.FileSystemObject"); 
+				var f = fso.OpenTextFile(filename,1); 
+				var s = ""; 
+				while (!f.AtEndOfStream) 
+					s += f.ReadLine(); 
+				f.Close(); 
+				return s; 
+			} 
+
+			function getatt(layer){
+				var att = layer.getAttributions();
+				return att;
+			} 
+
+			var content = '{"type": "FeatureCollection","features": [{"type": "Feature","geometry": {"type": "LineString","coordinates":  [[-72.855911774001143, 42.501639640790209],[0,0],[12.49, 41.90],[139.6917064, 35.6894875]]}}]}';
+			// var content = readFile('D:1.txt');
+
+			function initJson(content)
+			{
+				var gj  =new ol.source.GeoJSON({
+					projection : 'EPSG:900913',
+					text: content	
+				});
+
+				return gj;
+			}
+			
+
+			var draw; // global so we can remove it later
+
+			function initGeo(gj)
+			{
+				var geoLayer = new ol.layer.Vector({
+					type : "Polygon",
+					source : gj,
+					style : new ol.style.Style({
+						stroke : new ol.style.Stroke({
+						color : '#FF0022',
+						width : 5
+						}),
+						zIndex : 999
+					})		
+				});
+
+				return geoLayer;
+			}
+            function  setCenterPoint()
+			{
+				var obj1 = JSON.parse(content);
+				var s1 = JSON.stringify(obj1.features);			
+				s2 = s1.substring(1,s1.length-1);				
+				var obj2 = JSON.parse(s2);
+				var obj3 = obj2.geometry.coordinates;
+				var s3 = JSON.stringify(obj3);		
+				var s4 = s3.substring(1,s3.length-1);
+				var pattern=/\d+\.\d+|\d+/g;
+				var matches=s4.match(pattern);
+				for(var i in matches)
+				{
+					document.write(matches[i]+"<br/>");
+				}
+				centerPoint = [Number(matches[0]),Number(matches[1])];
+				document.write(centerPoint+"<br/>");
+			} 
+
+
+			function initmap(centerpoint)
+			{
+				var map = new ol.Map({
+				target: 'map',
+				view: new ol.View({
+				center: ol.proj.transform(centerpoint, 'EPSG:4326', 'EPSG:3857'),
+				zoom: 2
+				})
+				});
+
+				return map;
+			}
+
+			setCenterPoint();
+			var map = initmap(centerPoint)	;		
+			var newLayer = new ol.layer.Tile({
+				source : new ol.source.OSM()
+			});						
+			// content = readFile('d:1.txt');
+			var gj = initJson(content);
+			var geoLayer = initGeo(gj);			
+			map.addLayer(newLayer);
+			map.addLayer(geoLayer);
+			
+			
+		</script>
+	</body>
+</html>		

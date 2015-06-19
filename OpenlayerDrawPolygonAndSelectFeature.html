@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Synthetic points example</title>
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.5.0/ol.css" type="text/css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ol3/3.5.0/ol.js"></script>
+</head>
+	<body>
+	<div class = "container-fluid">
+	<div class = "row-fluid">
+	<output  id="mouse-position"></output>
+	<output id="hoverWhen"></output>
+	<div id="map" class="map"></div>
+	</div>
+	
+	<script>
+
+	var mousePositionControl = new ol.control.MousePosition({
+  coordinateFormat: ol.coordinate.createStringXY(4),
+  projection: 'EPSG:4326',
+  // comment the following two lines to have the mouse position
+  // be placed within the map.
+  className: 'custom-mouse-position',
+  target: document.getElementById('mouse-position'),
+  undefinedHTML: '&nbsp;'
+});
+	var count = 4;
+	
+	var e = 18000000;
+	var features = new Array(count);
+	for (var i = 0; i < count; ++i) {
+	  features[i] = new ol.Feature({
+	    'geometry': new ol.geom.Polygon(
+	        [[[2 * e * Math.random() - e, 2 * e * Math.random() - e],[2 * e * Math.random() - e, 2 * e * Math.random() - e],[2 * e * Math.random() - e, 2 * e * Math.random() - e],[2 * e * Math.random() - e, 2 * e * Math.random() - e]]]),
+	    'i': i,
+	    'text':"dadsada",
+
+	  });
+	}
+	
+	var vectorSource = new ol.source.Vector({});
+	vectorSource.addFeatures(features);
+	var vector = new ol.layer.Vector({						
+		source : vectorSource,
+		 style: new ol.style.Style({
+            stroke: new ol.style.Stroke({
+                color: '#FF0000',
+                width: 4
+            })
+        })
+	});
+
+	
+
+	var map = new ol.Map({
+		controls: ol.control.defaults({
+    	attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+      collapsible: false
+    })
+  }).extend([mousePositionControl]),
+		layers:[vector],
+		target:document.getElementById('map'),
+		view:new ol.View({
+			center:[0,0],
+			zoom:2
+		})
+	
+	});
+
+	var SelectF={
+		init:function(){
+			this.select = new ol.interaction.Select();
+			map.addInteraction(this.select);
+			this.setEvents();
+		},
+		setEvents:function(){	        
+			var selectFea = this.select.getFeatures();	
+			selectFea.on('add',function(event){
+				var feature = event.element;
+				document.getElementById("hoverWhen").innerHTML=(feature.get('geometry').getCoordinates());
+			})
+	  }
+	};
+	SelectF.init();
+	
+	var newLayer = new ol.layer.Tile({
+					source : new ol.source.OSM()
+				});		
+	
+
+	map.addLayer(newLayer);
+	map.addLayer(vector);
+	map.render();
+	</script>
+	</body>
+</html>
